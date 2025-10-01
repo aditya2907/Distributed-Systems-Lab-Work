@@ -51,7 +51,6 @@ python client.py
 This will start an interactive session where you can:
 - Type messages to send to the server
 - Receive timestamped responses
-- Type `quit`, `exit`, or `q` to exit
 
 #### Single Message Mode
 
@@ -88,7 +87,7 @@ Since the client needs to connect to the server, you can either:
    docker run -it --network host python-socket-lab python client.py "Hello from container!"
    ```
 
-## 📖 Examples
+## Examples
 
 ### Example 1: Basic Communication
 
@@ -97,10 +96,11 @@ Since the client needs to connect to the server, you can either:
 $ python server.py
 INFO:root:Server bound to 127.0.0.1:8080
 INFO:root:Server is listening for connections...
-INFO:root:Connection established with ('127.0.0.1', 54321)
-INFO:root:Received from ('127.0.0.1', 54321): Hello, World!
-INFO:root:Sent response to ('127.0.0.1', 54321)
-INFO:root:Connection closed with ('127.0.0.1', 54321)
+INFO:root:Accepted connection from ('127.0.0.1', 53901)
+INFO:root:Connection established with ('127.0.0.1', 53901)
+INFO:root:Received from ('127.0.0.1', 53901): Hello, Aditya
+INFO:root:Sent response to ('127.0.0.1', 53901)
+INFO:root:Connection closed with ('127.0.0.1', 53901)
 ```
 
 **Terminal 2 (Client):**
@@ -108,12 +108,12 @@ INFO:root:Connection closed with ('127.0.0.1', 54321)
 $ python client.py
 TCP Client - Type 'quit' to exit
 ----------------------------------------
-Enter message to send: Hello, World!
+Enter message to send: Hello, Aditya!
 INFO:root:Connected to server at localhost:8080
-INFO:root:Sent message: Hello, World!
-INFO:root:Received response: Server received at 2025-10-01 14:30:25: Hello, World!
+INFO:root:Sent message: Hello, Aditya!
+INFO:root:Received response: Server received at 2025-10-01 23:27:44: Hello, Aditya
 INFO:root:Connection closed
-Server response: Server received at 2025-10-01 14:30:25: Hello, World!
+Server response: Server received at 2025-10-01 23:27:44: Hello, Aditya
 ```
 
 ### Example 2: Command Line Usage
@@ -127,103 +127,4 @@ INFO:root:Connection closed
 Response: Server received at 2025-10-01 14:31:10: Quick message
 ```
 
-### Example 3: Multiple Concurrent Clients
 
-You can run multiple client instances simultaneously, and the server will handle them concurrently using separate threads.
-
-## 🔧 Technical Details
-
-### Server Architecture
-
-- **Protocol**: TCP (Transmission Control Protocol)
-- **Address**: 127.0.0.1 (localhost)
-- **Port**: 8080
-- **Concurrency**: Multi-threaded using Python's `threading` module
-- **Socket Options**: `SO_REUSEADDR` enabled to avoid "Address already in use" errors
-
-### Client Features
-
-- **Connection Management**: Automatic connection establishment and cleanup
-- **Input Modes**: Interactive and command-line argument modes
-- **Error Handling**: Graceful handling of connection failures
-- **User Experience**: Clear prompts and feedback
-
-### Message Protocol
-
-1. Client establishes TCP connection to server
-2. Client sends UTF-8 encoded message
-3. Server receives message and processes it
-4. Server responds with timestamped message
-5. Connection is closed after each message exchange
-
-### Security Considerations
-
-- Server only binds to localhost (127.0.0.1) for security
-- No authentication mechanism (suitable for lab/development only)
-- No encryption (plain text communication)
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **"Address already in use" Error**
-   - Wait a few seconds and try again
-   - The server uses `SO_REUSEADDR` to minimize this issue
-   - Kill any existing server processes: `pkill -f server.py`
-
-2. **"Connection refused" Error**
-   - Ensure the server is running before starting the client
-   - Check if the server is listening on the correct port
-   - Verify firewall settings
-
-3. **Import Errors**
-   - Ensure you're using Python 3.7+
-   - The project uses only standard library modules
-
-4. **Docker Issues**
-   - Ensure Docker is running
-   - Check port mapping: `-p 8080:8080`
-   - For networking issues, try `--network host`
-
-### Debugging
-
-Enable more detailed logging by modifying the logging level:
-
-```python
-logging.basicConfig(level=logging.DEBUG)
-```
-
-### Port Configuration
-
-To use a different port, modify both `server.py` and `client.py`:
-
-```python
-PORT = 9090  # Change to desired port
-```
-
-## 🤝 Contributing
-
-1. Fork the project
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📚 Learning Objectives
-
-This lab demonstrates:
-
-- **Socket Programming**: Basic TCP socket operations
-- **Network Communication**: Client-server message exchange
-- **Concurrency**: Multi-threaded server handling
-- **Error Handling**: Robust network programming practices
-- **Logging**: Application monitoring and debugging
-- **Containerization**: Docker deployment strategies
-
-## 📄 License
-
-This project is for educational purposes as part of a Distributed Systems course.
-
----
-
-**Happy Socket Programming! 🚀**
