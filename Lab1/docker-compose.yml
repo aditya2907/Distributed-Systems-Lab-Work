@@ -1,0 +1,139 @@
+services:
+  # Python Socket Server
+  socket-server:
+    build:
+      context: ./python-socket-lab
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - lab-network
+    container_name: socket-server
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 8080)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Python REST API Server
+  rest-api-server:
+    build:
+      context: ./python-rest-api-lab
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    networks:
+      - lab-network
+    container_name: rest-api-server
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/users"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Python gRPC Server
+  grpc-server:
+    build:
+      context: ./python-grpc-lab
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    networks:
+      - lab-network
+    container_name: grpc-server
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=50051
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:50051'); channel.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Socket Client (for testing)
+  socket-client:
+    build:
+      context: ./python-socket-lab
+      dockerfile: Dockerfile
+    networks:
+      - lab-network
+    container_name: socket-client
+    depends_on:
+      socket-server:
+        condition: service_healthy
+    command: ["python", "client.py", "Hello from Docker container!"]
+    restart: "no"
+    profiles:
+      - testing
+
+  # REST API Client (for testing)
+  rest-client:
+    image: curlimages/curl:latest
+    networks:
+      - lab-network
+    container_name: rest-client
+    depends_on:
+      rest-api-server:
+        condition: service_healthy
+    command: ["curl", "-X", "GET", "http://rest-api-server:5000/api/users"]
+    restart: "no"
+    profiles:
+      - testing
+
+  # gRPC Client (for testing)
+  grpc-client:
+    build:
+      context: ./python-grpc-lab
+      dockerfile: Dockerfile
+    networks:
+      - lab-network
+    container_name: grpc-client
+    depends_on:
+      grpc-server:
+        condition: service_healthy
+    command: ["python", "client.py"]
+    restart: "no"
+    profiles:
+      - testing
+
+  # Performance Benchmark Service
+  benchmark:
+    build:
+      context: ./python-grpc-lab
+      dockerfile: Dockerfile
+    networks:
+      - lab-network
+    container_name: benchmark
+    depends_on:
+      grpc-server:
+        condition: service_healthy
+      rest-api-server:
+        condition: service_healthy
+    command: ["python", "benchmark.py"]
+    restart: "no"
+    environment:
+      - REST_API_URL=http://rest-api-server:5000/api
+      - GRPC_SERVER_URL=grpc-server:50051
+    profiles:
+      - testing
+
+networks:
+  lab-network:
+    driver: bridge
+    name: distributed-systems-lab
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  lab-data:
+    name: lab-shared-data
+    driver: local
