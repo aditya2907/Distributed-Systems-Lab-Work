@@ -28,7 +28,7 @@ kubectl port-forward service/clientservice 5001:5000 &
 kubectl port-forward service/backendservice 5002:5000 &
 
 # 5. Run comprehensive tests
-./enhanced_demo.sh
+./demo.sh
 
 # 6. Run chaos experiment
 cd chaos && chaos run experiment.json
