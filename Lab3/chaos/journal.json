@@ -1,0 +1,250 @@
+{
+  "chaoslib-version": "1.44.0",
+  "platform": "macOS-26.1-arm64-arm-64bit-Mach-O",
+  "node": "Adityas-MacBook-Air.local",
+  "experiment": {
+    "version": "1.0.0",
+    "title": "Backend Service Pod Failure - Resilience Test",
+    "description": "This experiment simulates a complete failure of the backend-service pod to test the client-service's resilience patterns (circuit breaker and retry mechanisms). The experiment will terminate the backend pod and observe how the system handles the failure and recovers.",
+    "tags": [
+      "kubernetes",
+      "pod-failure",
+      "resilience"
+    ],
+    "configuration": {
+      "namespace": "default"
+    },
+    "steady-state-hypothesis": {
+      "title": "System is healthy and responsive",
+      "probes": [
+        {
+          "type": "probe",
+          "name": "client-service-is-available",
+          "tolerance": true,
+          "provider": {
+            "type": "python",
+            "module": "chaosk8s.pod.probes",
+            "func": "pods_not_in_phase",
+            "arguments": {
+              "label_selector": "app=client",
+              "phase": "Failed",
+              "ns": "default"
+            }
+          }
+        },
+        {
+          "type": "probe",
+          "name": "backend-service-is-available",
+          "tolerance": true,
+          "provider": {
+            "type": "python",
+            "module": "chaosk8s.pod.probes",
+            "func": "pods_not_in_phase",
+            "arguments": {
+              "label_selector": "app=backend",
+              "phase": "Failed",
+              "ns": "default"
+            }
+          }
+        }
+      ]
+    },
+    "method": [
+      {
+        "type": "action",
+        "name": "terminate-backend-pod",
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.actions",
+          "func": "terminate_pods",
+          "arguments": {
+            "label_selector": "app=backend",
+            "ns": "default",
+            "rand": true
+          }
+        },
+        "pauses": {
+          "after": 30
+        }
+      }
+    ],
+    "rollbacks": [
+      {
+        "type": "action",
+        "name": "verify-backend-recovered",
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.probes",
+          "func": "pods_in_phase",
+          "arguments": {
+            "label_selector": "app=backend",
+            "phase": "Running",
+            "ns": "default"
+          }
+        }
+      }
+    ],
+    "dry": null
+  },
+  "start": "2025-11-01T17:03:46.648185+00:00",
+  "status": "completed",
+  "deviated": false,
+  "steady_states": {
+    "before": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "client-service-is-available",
+            "tolerance": true,
+            "provider": {
+              "type": "python",
+              "module": "chaosk8s.pod.probes",
+              "func": "pods_not_in_phase",
+              "arguments": {
+                "label_selector": "app=client",
+                "phase": "Failed",
+                "ns": "default"
+              }
+            }
+          },
+          "output": true,
+          "start": "2025-11-01T17:03:46.648563+00:00",
+          "status": "succeeded",
+          "end": "2025-11-01T17:03:46.663351+00:00",
+          "duration": 0.014788,
+          "tolerance_met": true
+        },
+        {
+          "activity": {
+            "type": "probe",
+            "name": "backend-service-is-available",
+            "tolerance": true,
+            "provider": {
+              "type": "python",
+              "module": "chaosk8s.pod.probes",
+              "func": "pods_not_in_phase",
+              "arguments": {
+                "label_selector": "app=backend",
+                "phase": "Failed",
+                "ns": "default"
+              }
+            }
+          },
+          "output": true,
+          "start": "2025-11-01T17:03:46.663425+00:00",
+          "status": "succeeded",
+          "end": "2025-11-01T17:03:46.672790+00:00",
+          "duration": 0.009365,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "after": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "client-service-is-available",
+            "tolerance": true,
+            "provider": {
+              "type": "python",
+              "module": "chaosk8s.pod.probes",
+              "func": "pods_not_in_phase",
+              "arguments": {
+                "label_selector": "app=client",
+                "phase": "Failed",
+                "ns": "default"
+              }
+            }
+          },
+          "output": true,
+          "start": "2025-11-01T17:04:16.695246+00:00",
+          "status": "succeeded",
+          "end": "2025-11-01T17:04:16.721296+00:00",
+          "duration": 0.02605,
+          "tolerance_met": true
+        },
+        {
+          "activity": {
+            "type": "probe",
+            "name": "backend-service-is-available",
+            "tolerance": true,
+            "provider": {
+              "type": "python",
+              "module": "chaosk8s.pod.probes",
+              "func": "pods_not_in_phase",
+              "arguments": {
+                "label_selector": "app=backend",
+                "phase": "Failed",
+                "ns": "default"
+              }
+            }
+          },
+          "output": true,
+          "start": "2025-11-01T17:04:16.721490+00:00",
+          "status": "succeeded",
+          "end": "2025-11-01T17:04:16.736334+00:00",
+          "duration": 0.014844,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "during": []
+  },
+  "run": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "terminate-backend-pod",
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.actions",
+          "func": "terminate_pods",
+          "arguments": {
+            "label_selector": "app=backend",
+            "ns": "default",
+            "rand": true
+          }
+        },
+        "pauses": {
+          "after": 30
+        }
+      },
+      "output": [
+        "backendservice-deployment-5cb7f6b6-j5hv8"
+      ],
+      "start": "2025-11-01T17:03:46.672929+00:00",
+      "status": "succeeded",
+      "end": "2025-11-01T17:03:46.688778+00:00",
+      "duration": 0.015849
+    }
+  ],
+  "rollbacks": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "verify-backend-recovered",
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.probes",
+          "func": "pods_in_phase",
+          "arguments": {
+            "label_selector": "app=backend",
+            "phase": "Running",
+            "ns": "default"
+          }
+        }
+      },
+      "output": true,
+      "start": "2025-11-01T17:04:16.736903+00:00",
+      "status": "succeeded",
+      "end": "2025-11-01T17:04:16.747095+00:00",
+      "duration": 0.010192
+    }
+  ],
+  "end": "2025-11-01T17:04:16.747150+00:00",
+  "duration": 30.112609148025513
+}

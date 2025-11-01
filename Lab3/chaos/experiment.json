@@ -1,0 +1,83 @@
+{
+    "version": "1.0.0",
+    "title": "Backend Service Pod Failure - Resilience Test",
+    "description": "This experiment simulates a complete failure of the backend-service pod to test the client-service's resilience patterns (circuit breaker and retry mechanisms). The experiment will terminate the backend pod and observe how the system handles the failure and recovers.",
+    "tags": [
+        "kubernetes",
+        "pod-failure",
+        "resilience"
+    ],
+    "configuration": {
+        "namespace": "default"
+    },
+    "steady-state-hypothesis": {
+        "title": "System is healthy and responsive",
+        "probes": [
+            {
+                "type": "probe",
+                "name": "client-service-is-available",
+                "tolerance": true,
+                "provider": {
+                    "type": "python",
+                    "module": "chaosk8s.pod.probes",
+                    "func": "pods_not_in_phase",
+                    "arguments": {
+                        "label_selector": "app=client",
+                        "phase": "Failed",
+                        "ns": "default"
+                    }
+                }
+            },
+            {
+                "type": "probe",
+                "name": "backend-service-is-available",
+                "tolerance": true,
+                "provider": {
+                    "type": "python",
+                    "module": "chaosk8s.pod.probes",
+                    "func": "pods_not_in_phase",
+                    "arguments": {
+                        "label_selector": "app=backend",
+                        "phase": "Failed",
+                        "ns": "default"
+                    }
+                }
+            }
+        ]
+    },
+    "method": [
+        {
+            "type": "action",
+            "name": "terminate-backend-pod",
+            "provider": {
+                "type": "python",
+                "module": "chaosk8s.pod.actions",
+                "func": "terminate_pods",
+                "arguments": {
+                    "label_selector": "app=backend",
+                    "ns": "default",
+                    "rand": true
+                }
+            },
+            "pauses": {
+                "after": 30
+            }
+        }
+    ],
+    "rollbacks": [
+        {
+            "type": "action",
+            "name": "verify-backend-recovered",
+            "provider": {
+                "type": "python",
+                "module": "chaosk8s.pod.probes",
+                "func": "pods_in_phase",
+                "arguments": {
+                    "label_selector": "app=backend",
+                    "phase": "Running",
+                    "ns": "default"
+                }
+            }
+        }
+    ]
+}
